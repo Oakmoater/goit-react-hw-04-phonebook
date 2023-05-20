@@ -1,32 +1,29 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import { nanoid } from 'nanoid'
 import ContactForm from './ContactForm/ContactForm'
 import ContactList from './ContactList/ContactList'
 import Filter from "./Filter/Filter";
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: ''
-  }
+export const App = () => {
 
-  componentDidMount() {
+  const[contacts, setContacts] = useState([])
+  const[filter, setFilter] = useState('')
+
+  useEffect(() => {
     const localData = localStorage.getItem('contacts')
     if (localData) {
-      this.setState({contacts: JSON.parse(localData)})
+      setContacts(JSON.parse(localData))
     }
-  }
+  }, [])
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-    localStorage.setItem('contacts', JSON.stringify(this.state.contacts))
-  }
-}
-
-  addContact = (e) => {
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+  
+  const addContact = (e) => {
     e.preventDefault();
     const { name, number } = e.target.elements;
-    const isDuplicateName = this.state.contacts.some(contact => contact.name === name.value);
+    const isDuplicateName = contacts.some(contact => contact.name === name.value);
     if (isDuplicateName) {
       alert(`${name.value} is already in contacts`);
     } else {
@@ -35,31 +32,25 @@ export class App extends Component {
         name: name.value,
         number: number.value
       };
-      this.setState(prevState => ({
-        contacts: [...prevState.contacts, newContact]
-      }));
+      setContacts(prevState => [...prevState, newContact]);
     }
   }
 
-  removeContact = (id) => {
-    this.setState(prevState => ({
-    contacts: prevState.contacts.filter(contact => contact.id !== id)
-    }));
+  const removeContact = (id) => {
+    setContacts(prevState => prevState.filter(contact => contact.id !== id));
   }
 
-  addFilter = (e) => {
-    this.setState({ filter: e.target.value })
+  const addFilter = (e) => {
+    setFilter(e.target.value)
   }
 
-  render() {
-    return (
-      <>
-        <h1>Phonebook</h1>
-        <ContactForm addContact={this.addContact} />
-        <h2>Contacts</h2>
-        <Filter addFilter={this.addFilter} />
-        <ContactList contacts={this.state.contacts} filter={this.state.filter} deleter={this.removeContact} />
-      </>
-    )
-  };
+  return (
+    <>
+      <h1>Phonebook</h1>
+      <ContactForm addContact={addContact} />
+      <h2>Contacts</h2>
+      <Filter addFilter={addFilter} />
+      <ContactList contacts={contacts} filter={filter} onDelete={removeContact} />
+    </>
+  )
 };
